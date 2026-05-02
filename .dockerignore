@@ -1,0 +1,40 @@
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Environment variables (SECURITY)
+.env
+
+# Git
+.git/
+.gitignore
+
+# Editor / OS files
+.vscode/
+.idea/
+.DS_Store
+
+# LangGraph generated files
+.langgraph_api/
+
+# Tests & local-only folders
+Debugging/
+HumanInTheLoop/
+
+# Logs
+*.log
+
+# UV / Python build artifacts
+.uv/
+uv.lock
+
+# Docker files themselves (optional)
+dockerfile
+Dockerfile
