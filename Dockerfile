@@ -10,7 +10,7 @@ RUN pip install --no-cache-dir uv
 COPY pyproject.toml .
 
 #Install Dependencies
-RUN uv pip install --system --prefix=/install .
+RUN uv pip install --system --target=/install .
 
 # ---------- Stage 2: Runtime ----------
 FROM python:3.12-slim
@@ -18,7 +18,7 @@ FROM python:3.12-slim
 WORKDIR /app
 
 # Copy only installed dependencies from builder
-COPY --from=builder /install /usr/local
+COPY --from=builder /install /usr/local/lib/python3.12/site-packages/
 
 COPY RAG/ .
 
