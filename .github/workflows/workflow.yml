@@ -58,7 +58,7 @@ jobs:
 
             - name: Helm upgrade --install
               run: |
-                helm install $HELM_RELEASE_NAME ./agenticai-helm/my-app \
+                helm upgrade --install $HELM_RELEASE_NAME ./agenticai-helm/my-app \
                   --namespace $K8S_NAMESPACE \
                   --set image.repository=${{ steps.build-image.outputs.repository }} \
                   --set image.tag=${{ steps.build-image.outputs.tag }} \
