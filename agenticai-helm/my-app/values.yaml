@@ -20,7 +20,7 @@ service:
 # ── IRSA (IAM Role for Service Accounts) ──────────────────────────────────────
 serviceAccount:
   name: my-app-sa
-  iamRoleArn: "arn:aws:iam::660622823791:role/secret_manager_role"        
+  iamRoleArn: "arn:aws:iam::660622823791:role/secret-manager-role"        
 
 # ── AWS Secrets Manager ────────────────────────────────────────────────────────
 secrets:
