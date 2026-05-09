@@ -1,0 +1,6 @@
+apiVersion: v2
+name: my-app
+description: Helm chart for deploying my-app to EKS with AWS Secrets Manager integration
+type: application
+version: 0.1.0   
+appVersion: "1.0.0" # overridden at deploy time with the actual image tag

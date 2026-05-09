@@ -8,17 +8,9 @@ on:
 env: 
   AWS_REGION: ${{ vars.AWS_REGION }}
   ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
-  AZURE_OPENAI_API_KEY: ${{ secrets.AZURE_OPENAI_API_KEY }}
-  AZURE_OPENAI_ENDPOINT: ${{ vars.AZURE_OPENAI_ENDPOINT }}
-  AZURE_OPENAI_EMBEDDINGS_DEPLOYMENT_NAME: ${{ vars.AZURE_OPENAI_EMBEDDINGS_DEPLOYMENT_NAME }}
-  AZURE_OPENAI_CHAT_DEPLOYMENT_NAME: ${{ vars.AZURE_OPENAI_CHAT_DEPLOYMENT_NAME }}
-  OPENAI_API_VERSION: ${{ vars.OPENAI_API_VERSION }}
-  LANGSMITH_TRACING: ${{ vars.LANGSMITH_TRACING }}
-  LANGSMITH_ENDPOINT: ${{ vars.LANGSMITH_ENDPOINT }}
-  LANGSMITH_PROJECT: ${{ vars.LANGSMITH_PROJECT }}
-  TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
-  LANGSMITH_API_KEY: ${{ secrets.LANGSMITH_API_KEY }}
-  PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
+  EKS_CLUSTER_NAME: ${{ vars.EKS_CLUSTER_NAME }}
+  K8S_NAMESPACE: ${{ vars.K8S_NAMESPACE }}
+  HELM_RELEASE_NAME: ${{ vars.HELM_RELEASE_NAME }}   
 
 jobs:
     deploy:
@@ -38,7 +30,9 @@ jobs:
               id: login-ecr
               uses: aws-actions/amazon-ecr-login@v1
 
+              # ── Build & push ─────────────────────────────────────────────────────────
             - name: Build, tag, and push image to ECR
+              id: build-image
               env:
                 ECR_REGISTRY: ${{steps.login-ecr.outputs.registry}}
                 IMAGE_TAG: ${{github.sha}}
@@ -49,3 +43,26 @@ jobs:
             - name: Output image URI
               run: |
                 echo "Image pushed to ${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:${{ github.sha }}"
+
+            # ── Helm deploy ──────────────────────────────────────────────────────────
+            - name: Install Helm
+              uses: azure/setup-helm@v4
+              with:
+                version: "v4.1.4"
+
+            - name: Configure kubectl for EKS
+              run: |
+                aws eks update-kubeconfig \
+                  --region $AWS_REGION \
+                  --name $EKS_CLUSTER_NAME
+
+            - name: Helm upgrade --install
+              run: |
+                helm upgrade $HELM_RELEASE_NAME ./helm/my-app \
+                  --install \
+                  --atomic \                          # rolls back automatically on failure
+                  --timeout 5m \
+                  --namespace $K8S_NAMESPACE \
+                  --set image.repository=${{ steps.build-image.outputs.repository }} \
+                  --set image.tag=${{ steps.build-image.outputs.tag }} \
+                  --set namespace=$K8S_NAMESPACE

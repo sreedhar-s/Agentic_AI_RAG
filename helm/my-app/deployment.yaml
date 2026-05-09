@@ -1,0 +1,117 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "my-app.fullname" . }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "my-app.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "my-app.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "my-app.selectorLabels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "my-app.serviceAccountName" . }}
+      volumes:
+        - name: secrets-store
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: {{ include "my-app.fullname" . }}-secrets
+
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+
+          ports:
+            - name: http
+              containerPort: {{ .Values.containerPort }}
+              protocol: TCP
+
+          volumeMounts:
+            - name: secrets-store
+              mountPath: "/mnt/secrets"
+              readOnly: true
+
+          env:
+            # ── Secrets (synced from AWS Secrets Manager by the CSI driver) ──────
+            - name: AZURE_OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.syncedSecretName | quote }}
+                  key: AZURE_OPENAI_API_KEY
+            - name: LANGSMITH_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.syncedSecretName | quote }}
+                  key: LANGSMITH_API_KEY
+            - name: TAVILY_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.syncedSecretName | quote }}
+                  key: TAVILY_API_KEY
+            - name: PINECONE_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.syncedSecretName | quote }}
+                  key: PINECONE_API_KEY
+
+            # ── Non-sensitive config (from ConfigMap) ────────────────────────────
+            - name: AZURE_OPENAI_ENDPOINT
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "my-app.fullname" . }}-config
+                  key: AZURE_OPENAI_ENDPOINT
+            - name: AZURE_OPENAI_EMBEDDINGS_DEPLOYMENT_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "my-app.fullname" . }}-config
+                  key: AZURE_OPENAI_EMBEDDINGS_DEPLOYMENT_NAME
+            - name: AZURE_OPENAI_CHAT_DEPLOYMENT_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "my-app.fullname" . }}-config
+                  key: AZURE_OPENAI_CHAT_DEPLOYMENT_NAME
+            - name: OPENAI_API_VERSION
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "my-app.fullname" . }}-config
+                  key: OPENAI_API_VERSION
+            - name: LANGSMITH_TRACING
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "my-app.fullname" . }}-config
+                  key: LANGSMITH_TRACING
+            - name: LANGSMITH_ENDPOINT
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "my-app.fullname" . }}-config
+                  key: LANGSMITH_ENDPOINT
+            - name: LANGSMITH_PROJECT
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "my-app.fullname" . }}-config
+                  key: LANGSMITH_PROJECT
+
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.probes.liveness.path }}
+              port: {{ .Values.containerPort }}
+            initialDelaySeconds: {{ .Values.probes.liveness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.probes.liveness.periodSeconds }}
+
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.probes.readiness.path }}
+              port: {{ .Values.containerPort }}
+            initialDelaySeconds: {{ .Values.probes.readiness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.probes.readiness.periodSeconds }}
