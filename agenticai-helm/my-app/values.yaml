@@ -24,11 +24,6 @@ serviceAccount:
 
 # ── AWS Secrets Manager ────────────────────────────────────────────────────────
 secrets:
-  # Names of secrets stored in AWS Secrets Manager
-  AZURE_OPENAI_API_KEY: "agenticai_secrets/AZURE_OPENAI_API_KEY"
-  LANGSMITH_API_KEY: "agenticai_secrets/LANGSMITH_API_KEY"
-  TAVILY_API_KEY: "agenticai_secrets/TAVILY_API_KEY"
-  PINECONE_API_KEY: "agenticai_secrets/PINECONE_API_KEY"
   # Name of the K8s Secret the CSI driver syncs values into
   syncedSecretName: app-secrets-synced
 
