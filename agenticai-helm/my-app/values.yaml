@@ -40,17 +40,6 @@ config:
 # ── Container port ────────────────────────────────────────────────────────────
 containerPort: 8000
 
-# ── Health probes ─────────────────────────────────────────────────────────────
-probes:
-  liveness:
-    path: /health
-    initialDelaySeconds: 30
-    periodSeconds: 10
-  readiness:
-    path: /health
-    initialDelaySeconds: 15
-    periodSeconds: 5
-
 # ── Resource limits ───────────────────────────────────────────────────────────
 resources:
   requests:
