@@ -1,7 +1,7 @@
 # ── Image ─────────────────────────────────────────────────────────────────────
 image:
-  repository: "660622823791.dkr.ecr.ap-south-1.amazonaws.com/agenticai/rag"        
-  tag: "latest"         # overridden by CI with github.sha
+  repository: ""        
+  tag: ""         # overridden by CI with github.sha
   pullPolicy: IfNotPresent
 
 # ── Replicas ──────────────────────────────────────────────────────────────────

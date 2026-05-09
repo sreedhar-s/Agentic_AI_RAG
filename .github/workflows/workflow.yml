@@ -60,6 +60,6 @@ jobs:
               run: |
                 helm upgrade --install $HELM_RELEASE_NAME ./agenticai-helm/my-app \
                   --namespace $K8S_NAMESPACE \
-                  --set image.repository=${{ steps.build-image.outputs.repository }} \
-                  --set image.tag=${{ steps.build-image.outputs.tag }} \
+                  --set image.repository=${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY \
+                  --set image.tag=${{ github.sha }} \
                   --set namespace=$K8S_NAMESPACE
