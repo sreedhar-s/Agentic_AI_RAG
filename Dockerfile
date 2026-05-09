@@ -20,6 +20,6 @@ COPY --from=builder /install/. /usr/local/
 
 COPY RAG/ .
 
-EXPOSE 8123
+EXPOSE 8000
 
 CMD ["langgraph", "dev", "--host", "0.0.0.0", "--port", "8000"]
